@@ -1,2 +1,2 @@
 # DSM
-Repository of "Deep Specification Mining" project
+Repository of "Deep Specification Mining" project (under contruction)
