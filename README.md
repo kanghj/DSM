@@ -8,6 +8,10 @@
 ```
 conda install -c jjhelmus tensorflow=0.12.0
 ```
+- Install graphviz for Python:
+```
+python -m install graphviz
+```
 - Test installation:
   ```
   cd data/StringTokenizer
