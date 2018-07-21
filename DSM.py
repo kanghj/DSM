@@ -5,12 +5,26 @@ import fsa_construction.input_processing as input_sampler
 import fsa_construction.k_ptails as feature_extractor
 import fsa_construction.clustering_pro as clustering_processing
 import fsa_construction.estimate_accuracy as model_selection
+import fsa_construction.updater as model_updater
 class Option:
     def __init__(self,args):
+        self.update_mode=False
+        if args.old_fsm is not None:
+            if args.additional_trace is None:
+                print("Please provide all information to update the automata")
+                sys.exit(-1)
+            
+            self.update_mode=True
+        ####################################################################################
         self.args = args
         if not os.path.isdir(self.args.work_dir):
             os.makedirs(self.args.work_dir)
-        self.raw_input_trace_file = self.args.data_dir+'/input.txt'
+        if self.args.additional_trace is None:
+            self.raw_input_trace_file = self.args.data_dir+'/input.txt'
+        else:
+            self.raw_input_trace_file = self.args.additional_trace+'/input.txt'
+            self.input_training_trace_file = self.args.data_dir+'/input.txt'
+        #######
         if not os.path.isfile(self.raw_input_trace_file):
             print("Cannot find input execution traces stored in", self.raw_input_trace_file)
             sys.exit(-1)
@@ -74,6 +88,14 @@ def read_args():
                                                   Note: this file contains absolute paths, be careful when moving files around;
                             'model.ckpt-*'      : file(s) with model definition (created by tf)
                         """)
+
+    #### parameters for updating an existing automaton ####
+
+    parser.add_argument('--old_fsm', type=str, default=None,
+                       help='Path to a file containing the existing automaton')
+    parser.add_argument('--additional_trace', type=str, default=None,
+                       help='Path to a folder containing input.txt that has additional traces for updating the existing automaton')
+
     #### clustering parameters ####
 
     parser.add_argument('--max_cluster', type=int, default=20,
@@ -87,22 +109,25 @@ def read_args():
     parser.add_argument('--dfa', type=int, default=1,
                         help='Create DFA')
     args = parser.parse_args()
-    return Option(args)
+    return Option(args) 
 
 
 if __name__ == '__main__':
     input_option = read_args()
 
     ######## preprocessing traces & trace sampling ###########
+
     input_sampler.select_traces(input_option.raw_input_trace_file,input_option.cluster_trace_file)
 
     ######## train RNNLM model ########
-    if not os.path.isdir(input_option.args.save_dir):
-        os.makedirs(input_option.args.save_dir)
+
+    if not os.path.isdir(input_option.args.save_dir) or (input_option.args.additional_trace is not None and input_option.args.init_from is not None):
+        if not os.path.isdir(input_option.args.save_dir):
+            os.makedirs(input_option.args.save_dir)
         p = multiprocessing.Process(target=RNNLM_training.train, args=(input_option.args,))
         p.start()
         p.join()
-        #RNNLM_training.train(input_option.args) 
+        #RNNLM_training.train(input_option.args)s
 
     ######## feature extraction ########
 
@@ -117,4 +142,9 @@ if __name__ == '__main__':
     final_file=model_selection.selecting_model(input_option)
 
     print("Done! Final FSM is stored in",final_file)
+
+    ######## merge two automata ######
     
+    if input_option.update_mode:
+        
+        model_updater.update(input_option)
