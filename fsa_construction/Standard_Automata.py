@@ -94,9 +94,15 @@ class StandardAutomata:
         self.startings = set(startings)
         self.endings = set(endings)
         self.states = set()
-        for (source, dest, label) in edges:
+        for p in edges:
+            # if len(p)!=3:
+            #     print("ERROR:",p)
+            (source, dest, label)=p
             self.states.add(source)
             self.states.add(dest)
+
+    def clone(self):
+        return StandardAutomata(self.startings,self.transitions,self.endings)
 
     def remove_unconnected_states_to_endings(self):
         rev_adjlist = {}

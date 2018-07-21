@@ -6,6 +6,7 @@ import fsa_construction.Standard_Automata as graph_lib
 from fsa_construction.Standard_Automata import StandardAutomata
 import random
 import multiprocessing
+from collections import Counter
 
 
 def predict_accuracy(fsm_file, stat_file, input_file, prediction_file):
@@ -55,8 +56,29 @@ def write_results(rankings,output_file):
             cluster = os.path.dirname(fsm)
             writer.write(cluster+','+str(num)+','+str(p)+','+str(r)+','+str(f1)+'\n')
 
-
-
+def extract_rejected_traces(uncovered_traces_file,rejected_traces_file):
+    if not os.path.isfile(uncovered_traces_file):
+        return
+    with open(uncovered_traces_file,'r') as reader:
+        lines = [l.strip() for l in reader]
+    ans=[]
+    g=[]
+    for l in lines:
+        if l.startswith('###################################'):
+            if len(g)>0:
+                ans+=[g[0].split()]
+            g=[]
+        else:
+            g+=[l]
+    if len(g)>0:
+        ans+=[g[0].split()]
+    if len(ans)>0:
+        if not os.path.isdir(os.path.dirname(rejected_traces_file)):
+            os.makedirs(os.path.dirname(rejected_traces_file))
+        with open(rejected_traces_file,'w') as writer:
+            for tr in ans:
+                writer.write('<START> '+ ' '.join(tr)+'\n')
+        
 def selecting_model(input_options):
 
     cluster_folders = lib.find_folders_by_prefix(input_options.clustering_space_dir, 'S_')
@@ -79,7 +101,7 @@ def selecting_model(input_options):
     pool.close()
     pool.join()
 
-    rankings.sort(key=lambda x:(x[-1],-x[1]),reverse=True)
+    rankings.sort(key=lambda x:(x[-1],x[1]),reverse=True)
     best_fsm_folder =os.path.dirname(rankings[0][0])
     write_results(rankings,input_options.args.work_dir+'/model_selections.csv')
     import shutil
@@ -88,10 +110,7 @@ def selecting_model(input_options):
             continue
         shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.args.work_dir+'/FINAL_'+name+'.txt')
         shutil.copyfile(best_fsm_folder+'/'+name+'.eps',input_options.args.work_dir+'/FINAL_'+name+'.eps')
+
+        extract_rejected_traces(best_fsm_folder+'/dfa_uncovered_traces.txt',input_options.args.work_dir+'/rejected_traces/input.txt')
         return input_options.args.work_dir+'/FINAL_'+name+'.txt'
         
-
-
-# if __name__ == '__main__':
-#     #handle(DGX1LearningConfiguration())
-#     handle(UX501LearningConfiguration())

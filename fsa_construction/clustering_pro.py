@@ -378,6 +378,11 @@ def remove_starting(tr):
 
 
 def count_accepted_traces(fsm, validation_traces, output_file=None, debug=False):
+    """
+    Count number of traces in validation_traces accepted by the fsm
+    @fsm: input finite state machine
+    @validation_traces: input execution traces
+    """
     ans = 0
     fsm_adjlst = fsm.create_adjacent_list()
     rejected_traces = []
@@ -389,6 +394,15 @@ def count_accepted_traces(fsm, validation_traces, output_file=None, debug=False)
             rejected_traces += [(tuple(tr), rejected_prefices)]  # TODO rejected data could be caused by program crashes
 
     if output_file is not None and len(rejected_traces) > 0:
+        output_file = os.path.abspath(output_file)
+        dirname = os.path.dirname(output_file)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+        if not os.path.isdir(dirname+'/rejected_traces'):
+            os.makedirs(dirname+'/rejected_traces')
+        with  open(dirname+'/rejected_traces/input.txt','w') as writer:
+            writer.write('\n'.join( list( map(lambda x:'<START> '+ ' '.join(x[0]),rejected_traces)) ) +'\n')
+
         with open(output_file, 'w') as writer:
             for tr, rejected_prefices in rejected_traces:
                 writer.write(' '.join(tr) + '\n')
