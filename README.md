@@ -1,4 +1,4 @@
-# DSM (Deep Specification Miner) [[pdf](https://github.com/lebuitienduy/DSM/blob/master/paper/DSM.pdf)]
+# DSM (Deep Specification Miner) [[pdf](https://github.com/lebuitienduy/DSM/blob/master/paper/DSM.pdf)] [[slides](https://github.com/lebuitienduy/DSM/blob/master/paper/DSM-ISSTA.pptx)]
 ## Installation
 ### Linux
 
