@@ -127,7 +127,7 @@ def simplify_trace(selected_traces):
     return ans
 
 
-def select_traces(input_file, output_file, min_occurrence=5,debug=True):
+def select_traces(input_file, output_file, min_occurrence=5, debug=True):
     with open(input_file, 'r') as reader:
         traces = set([tuple(l.strip().split()) for l in reader])
     method_list=set([e for tr in traces for e in tr])
@@ -164,8 +164,9 @@ def select_traces(input_file, output_file, min_occurrence=5,debug=True):
     return selected_traces
 
 
-
+# HJ: pair_min_occurrence is unused
 def select_cluster_traces_by_min_pair_coverage(traces, pair_min_occurrence=1):
+
     method_pairs_freqs = Counter([(tr[i], tr[i + 1]) for tr in traces for i in range(len(tr) - 1)
                                   # if tr[i] != lib.starting_char() and tr[i + 1] != lib.ending_char()
                                   ])
@@ -184,6 +185,7 @@ def select_cluster_traces_by_min_pair_coverage(traces, pair_min_occurrence=1):
         for i in range(len(pair_traces_dict[p])):
             if selected_mfreq[p] >= pair_min_occurrence:
                 break
+
             current_trace = traces[pair_traces_dict[p][i]]
             if pair_traces_dict[p][i] not in is_selected_traces:
                 selected_traces += [current_trace]

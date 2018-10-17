@@ -4,8 +4,11 @@ import os
 import sys
 
 from sklearn.cluster import KMeans, AgglomerativeClustering, AffinityPropagation, DBSCAN
+from scipy.spatial import distance
 from fsa_construction.Standard_Automata import StandardAutomata
 import fsa_construction.Standard_Automata as graph_lib
+
+import numpy as np
 
 import argparse,multiprocessing
 import lib
@@ -29,6 +32,7 @@ def do_clustering(args, to_cluster_X, clustering_algorithm=None, ncluster=None, 
     print("Clustering with", clustering_algorithm, ncluster, eps)
     if clustering_algorithm == 'kmeans':
         cluster_estimator = KMeans(n_clusters=ncluster, random_state=9999).fit(to_cluster_X)
+
     elif clustering_algorithm == 'hierarchical':
         cluster_estimator = AgglomerativeClustering(n_clusters=ncluster, linkage='ward').fit(to_cluster_X)
     elif clustering_algorithm == 'hierarchical_average':
@@ -113,7 +117,7 @@ def is_feature_file(name, prefix):
         return False
 
 
-def parse_sampled_traces(generated_traces_folder, prefix_name):
+def parse_sampled_traces(generated_traces_folder, prefix_name, method_list = None):
     seed_traces_files = lib.find_files_by_prefix(generated_traces_folder, prefix_name)
     # print seed_traces_files,generated_traces_folder
     print("Found", len(seed_traces_files), "training trace files")
@@ -152,7 +156,11 @@ def parse_sampled_traces(generated_traces_folder, prefix_name):
     print("Parsed trace set:", len(trace_set))
     ###############################################################################
     # create legal pairs
-    method_list = sorted(list(method_set))
+    if method_list is None:
+        method_list = sorted(list(method_set))
+    else:
+        print("using old method list, assuming there are no new methods in new traces")
+
     method2ID = {e: k for (k, e) in enumerate(method_list)}
     actual_next_methods = {w: [0.0 for _ in method_list] for w in method_list}
     for one_trace in trace_set:
@@ -169,7 +177,6 @@ def parse_sampled_traces(generated_traces_folder, prefix_name):
         visited_method = {w: math.log10(1e-3) for w in method_list}
         for (probs, word_string) in one_trace:
             the_word = word_string.split()[-1]
-            next_word_vector = [1.0 if x == the_word else 0.0 for x in method_list]
 
             feature_trace += [
                 (
@@ -300,6 +307,40 @@ def write_cluster(element2cluster, X, f, X_id_mapping=None):
         writer.write((cluster + '\tID:' + id + '\t' + '\t'.join(map(lambda x: str(x), X[int(local_id)])) + '\n').encode('utf-8'))
 
     writer.close()
+
+
+def compute_distance(centroid, coords):
+
+    return distance.euclidean(np.array(centroid).reshape(1, -1), np.array(coords).reshape(1, -1))
+
+
+def write_cluster_contents_distance(element2cluster, X, centroids, f):
+    """
+    Writes to `f` the distance of each element in the cluster to the centroid.
+    :param element2cluster:
+    :param X:
+    :param f:
+    :return:
+    """
+    if f.endswith('.gz'):
+        writer = gzip.open(f, 'wb')
+    else:
+        writer = open(f, 'w')
+    try:
+        cluster_centroid = {}
+        for (cluster, coords) in centroids.items():
+            cluster_centroid[cluster] = coords
+
+        for (id, cluster) in sorted(element2cluster.items(), key=lambda x: x[-1]):
+
+            coords = X[int(id)]
+
+            writer.write((cluster + '\tID:' + id + '\t' + str(compute_distance(cluster_centroid[cluster], coords)) + '\n').encode('utf-8'))
+
+        writer.close()
+    except Exception as e:
+        print("ERROR writing cluster contents distance")
+        print(e)
 
 
 def ending_cluster():
@@ -517,6 +558,7 @@ def extending_ending_states(fsm, ending_methods):
 
 def drawing_dot(fsm, f):
     if len(fsm.states) < 25:
+        print("drawing dot!")
         fsm.to_dot(f, drawing_time=10)
 
 
@@ -539,8 +581,12 @@ def compute_statistics(X, method_list, args, estimator, generated_traces, valida
     # write cluster info
     write_cluster(elementID2cluster, X, output_folder + '/resultant_cluster.gz', X_id_mapping=X_id_mapping)
 
+
     # write centroids
     write_centroids_to_file(centroids, output_folder + '/centroids.txt')
+
+    # write distance to centroid of each element in each cluster
+    write_cluster_contents_distance(elementID2cluster, X, centroids, output_folder + '/cluster_element_distances.gz')
 
     if create_fsm_per_unit_trace:
         create_fsm_for_unit_traces(elementID2cluster, generated_traces, output_folder + '/unit_fsms')
@@ -581,6 +627,15 @@ def compute_statistics(X, method_list, args, estimator, generated_traces, valida
 
     if minimize_dfa:
         drawing_dot(mindfa, output_folder + '/mindfa')
+
+    print("after drawing dot")
+    print(output_folder)
+
+    try:
+        fsm.serialize(output_folder + "/serialized_fsa.json")
+    except Exception as e:
+        print("Serialization problem:")
+        print(e)
 
     # Number of accepted data; size of DFA, MinDFA, FSM;
 
@@ -638,6 +693,7 @@ def compute_statistics(X, method_list, args, estimator, generated_traces, valida
             possible_recall = float(dfa_num_accepted_traces) / float(len(validation_traces))
             writer.write('recall:\t' + str(possible_recall) + '\n')
 
+    print("after writing stats")
     ########################
     if ending_methods is not None:
         when_ending_method_available(ending_methods, fsm, output_folder, make_dfa=minimize_dfa)
@@ -685,6 +741,13 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
     X, generated_traces, additional_val_traces, method_list, possible_ending_words = parse_sampled_traces(
         args.generated_traces_folder, 'd')
     print("Training data:", len(generated_traces), "from", args.generated_traces_folder)
+
+    # side-effect: save information about methods.
+    # This is convenient for updating the FSA in future for new traces,
+    # because new traces may not have used all the methods
+    with open ('method_list.txt', 'w+') as method_file:
+        for method in method_list:
+            method_file.write(method)
 
     # read validation trace
     validation_traces = set()

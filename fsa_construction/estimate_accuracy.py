@@ -105,11 +105,22 @@ def selecting_model(input_options):
     best_fsm_folder =os.path.dirname(rankings[0][0])
     write_results(rankings,input_options.args.work_dir+'/model_selections.csv')
     import shutil
+
+    shutil.copyfile(best_fsm_folder + '/cluster_element_distances.gz',
+                    input_options.args.work_dir + '/FINAL_cluster_element_distances.gz')
+
+    shutil.copyfile(best_fsm_folder + '/serialized_fsa.json',
+                    input_options.args.work_dir + '/FINAL_serialized_fsa.json')
+
+    shutil.copyfile(best_fsm_folder + '/centroids.txt',
+                    input_options.args.work_dir + '/FINAL_centroids.json')
     for name in ['mindfa','dfa','fsm']:
         if not os.path.isfile(best_fsm_folder+'/'+name+'.txt'):
             continue
         shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.args.work_dir+'/FINAL_'+name+'.txt')
-        shutil.copyfile(best_fsm_folder+'/'+name+'.eps',input_options.args.work_dir+'/FINAL_'+name+'.eps')
+        shutil.copyfile(best_fsm_folder + '/' + name + '.eps', input_options.args.work_dir + '/FINAL_' + name + '.eps')
+        shutil.copyfile(best_fsm_folder+'/'+name,input_options.args.work_dir+'/FINAL_.dot')
+
 
         extract_rejected_traces(best_fsm_folder+'/dfa_uncovered_traces.txt',input_options.args.work_dir+'/rejected_traces/input.txt')
         return input_options.args.work_dir+'/FINAL_'+name+'.txt'

@@ -101,6 +101,20 @@ class StandardAutomata:
             self.states.add(source)
             self.states.add(dest)
 
+    def serialize(self,  f):
+        import json
+        json_string = json.dumps([list(self.transitions), list(self.startings), list(self.endings), list(self.states)])
+        with open(f, 'w+') as  opened:
+            opened.write(json_string)
+
+    def deserialize(self, f):
+        import json
+
+        with open(f) as infile:
+            d = json.load(infile)
+        return StandardAutomata(d[0], d[1], d[2])
+
+
     def clone(self):
         return StandardAutomata(self.startings,self.transitions,self.endings)
 
@@ -337,6 +351,8 @@ class StandardAutomata:
             finally:
                 if drawing_time is not None:
                     signal.alarm(0)
+        print("f.source")
+        print(f.source)
         return f.source
 
     # def to_string(self):
