@@ -104,6 +104,7 @@ def feature_engineering(input_option):
     os.makedirs(input_option.features4clustering_dir)
     with  open(input_option.cluster_trace_file,'r') as reader:    
         traces=[l.strip().split() for l in reader]
+
     index=0
     pool = multiprocessing.Pool(processes=input_option.args.max_cpu)
     for tr in traces:

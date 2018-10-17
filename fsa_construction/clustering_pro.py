@@ -13,6 +13,8 @@ import numpy as np
 import argparse,multiprocessing
 import lib
 
+from IPython import embed
+
 
 def max_trace_depth():
     return 10000
@@ -265,13 +267,17 @@ def read_clusters(estimator, X, X_id_mapping=None):
         local_mapping = {v: k for (k, v) in X_id_mapping.items()}
     ##############################################################
     centroids = {}
+
+    kdtree_cluster_node_flag = True
     if hasattr(estimator, 'cluster_centers_'):
         for i in range(len(estimator.cluster_centers_)):
             # writer.write('center_' + str(i) + '\t' + '\t'.join([str(x) for x in estimator.cluster_centers_[i]]) + '\n')
             centroids['C' + str(i)] = estimator.cluster_centers_[i]
     else:
 
+        print("no cluster_centers_, getting by old method")
         for cls in clusters:
+            print(cls)
             centroid = [0.0 for _ in range(len(X[0]))]
             for e in clusters[cls]:
                 actual_e = e if local_mapping is None else local_mapping[e]
@@ -282,6 +288,7 @@ def read_clusters(estimator, X, X_id_mapping=None):
                     centroid[i] += float(X[int(actual_e)][int(i)])
             for i in range(len(centroid)):
                 centroid[i] = float(centroid[i]) / float(len(clusters[cls]))
+            centroids[cls] = centroid
     return eleID2cluster, centroids, labels
 
 
@@ -328,19 +335,24 @@ def write_cluster_contents_distance(element2cluster, X, centroids, f):
         writer = open(f, 'w')
     try:
         cluster_centroid = {}
+        print('centroids')
         for (cluster, coords) in centroids.items():
+            print(cluster)
+            print(coords)
             cluster_centroid[cluster] = coords
 
         for (id, cluster) in sorted(element2cluster.items(), key=lambda x: x[-1]):
 
             coords = X[int(id)]
 
-            writer.write((cluster + '\tID:' + id + '\t' + str(compute_distance(cluster_centroid[cluster], coords)) + '\n').encode('utf-8'))
+            writer.write((cluster + '\tID:' + id + '\t' + str(compute_distance(cluster_centroid[cluster], coords)) + '\n'))
 
         writer.close()
     except Exception as e:
         print("ERROR writing cluster contents distance")
         print(e)
+
+
 
 
 def ending_cluster():
@@ -369,11 +381,8 @@ def write_trace_cluster_info(id2cluster, generated_traces, output_file):
                 post_prob_id, post_word = None, None
 
 
-def create_fsm(id2cluster, generated_traces):
-    startings = set()
-    endings = set()
-    edges = set()
-    endings.add(ending_cluster())
+def make_fsm(startings, endings, edges, id2cluster, generated_traces):
+
     log = {}
     for one_trace in generated_traces:
 
@@ -404,6 +413,23 @@ def create_fsm(id2cluster, generated_traces):
         if previous_label == ending_char():
             edges.add((previous_cluster, ending_cluster(), previous_label))
     return StandardAutomata(startings, edges, endings), log
+
+
+def update_fsm(old_automata, id2cluster, generated_traces):
+    startings = old_automata.startings
+    endings = old_automata.endings
+    edges = old_automata.transitions
+    return make_fsm(startings, endings, edges, id2cluster, generated_traces)
+
+
+def create_fsm(id2cluster, generated_traces):
+    startings = set()
+    endings = set()
+    edges = set()
+    endings.add(ending_cluster())
+
+    return make_fsm(startings, endings, edges, id2cluster, generated_traces)
+
 
 
 def starting_char():
@@ -586,7 +612,7 @@ def compute_statistics(X, method_list, args, estimator, generated_traces, valida
     write_centroids_to_file(centroids, output_folder + '/centroids.txt')
 
     # write distance to centroid of each element in each cluster
-    write_cluster_contents_distance(elementID2cluster, X, centroids, output_folder + '/cluster_element_distances.gz')
+    write_cluster_contents_distance(elementID2cluster, X, centroids, output_folder + '/cluster_element_distances.txt')
 
     if create_fsm_per_unit_trace:
         create_fsm_for_unit_traces(elementID2cluster, generated_traces, output_folder + '/unit_fsms')
@@ -745,9 +771,10 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
     # side-effect: save information about methods.
     # This is convenient for updating the FSA in future for new traces,
     # because new traces may not have used all the methods
-    with open ('method_list.txt', 'w+') as method_file:
+    with open('work_dir/method_list.txt', 'w+') as method_file:
         for method in method_list:
             method_file.write(method)
+            method_file.write('\n')
 
     # read validation trace
     validation_traces = set()

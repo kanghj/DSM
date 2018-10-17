@@ -106,14 +106,16 @@ def selecting_model(input_options):
     write_results(rankings,input_options.args.work_dir+'/model_selections.csv')
     import shutil
 
-    shutil.copyfile(best_fsm_folder + '/cluster_element_distances.gz',
-                    input_options.args.work_dir + '/FINAL_cluster_element_distances.gz')
+    shutil.copyfile(best_fsm_folder + '/cluster_element_distances.txt',
+                    input_options.args.work_dir + '/FINAL_cluster_element_distances.txt')
 
     shutil.copyfile(best_fsm_folder + '/serialized_fsa.json',
                     input_options.args.work_dir + '/FINAL_serialized_fsa.json')
 
     shutil.copyfile(best_fsm_folder + '/centroids.txt',
-                    input_options.args.work_dir + '/FINAL_centroids.json')
+                    input_options.args.work_dir + '/FINAL_centroids.txt')
+    shutil.copyfile(best_fsm_folder + '/resultant_cluster.gz',
+                    input_options.args.work_dir + '/FINAL_resultant_cluster.gz')
     for name in ['mindfa','dfa','fsm']:
         if not os.path.isfile(best_fsm_folder+'/'+name+'.txt'):
             continue
