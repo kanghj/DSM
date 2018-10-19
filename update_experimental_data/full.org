@@ -1,0 +1,24 @@
+| Class           | Need RNN retrainig | Real Time |
+|-----------------+--------------------+-----------|
+| ArrayList       | Y                  | 1m14.148s |
+| ArrayList       | N                  | 0m48.355s |
+| HashMap         | Y                  | 0m35.229s |
+| HashMap         | N                  | 1m58.541s |
+| HashSet         | Y                  | 0m43.902s |
+| HashSet         | N                  | 6m31.687s |
+| Hashtable       | Y                  | 0m36.634s |
+| HashTable       | N                  | 2m40.528s |
+| LinkedList      | Y                  | 0m27.604s |
+| LinkedList      | N                  | 0m46.559s |
+| NFST            | Y                  | 0m45.025s |
+| NFST            | N                  | 2m58.362s |
+| Signature       | Y                  | 0m37.621s |
+| Signature       | N                  | 6m6.858s  |
+| Socket          | Y                  | 1m7.934s  |
+| Socket          | N                  | 4m11.705s |
+| StackAr         | Y                  | 0m44.442s |
+| StackAr         | N                  | 3m45.533s |
+| StringTokenizer | Y                  | 0m45.852s |
+| StringTokenizer | N                  | 8m6.383s  |
+| ZipOutputStream | Y                  | 0m34.514s |
+| ZipOutputStream | Y                  | 1m39.613s |
