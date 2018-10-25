@@ -19,5 +19,6 @@ python -m install graphviz
   ```
 
 ## Updating model with new traces
-- For new traces that become available after the FSM model has already been constructed.
-- Can try to use DSM_updater.py. From one of the data directories (e.g. data/ZipOutputStream), run `python3 ../../DSM_updater.py new_traces/traces.txt` where `data/ZipOutputStream/new_traces/traces` contains new traces.  
+- When there are new traces that become available after the FSM model has already been constructed, it is possible to update the model without retraining on the entire dataset.
+- Much faster than retraining with all available data 
+- Run `python DSM_updater.py`. From one of the data directories (e.g. data/ZipOutputStream), run `python3 ../../DSM_updater.py new_traces/traces.txt` where `data/ZipOutputStream/new_traces/traces` contains new traces in the same format as the original traces.  
