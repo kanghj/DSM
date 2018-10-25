@@ -11,9 +11,8 @@ import fsa_construction.Standard_Automata as graph_lib
 import numpy as np
 
 import argparse,multiprocessing
+from collections import defaultdict
 import lib
-
-from IPython import embed
 
 
 def max_trace_depth():
@@ -160,7 +159,6 @@ def parse_sampled_traces(generated_traces_folder, prefix_name, method_list = Non
     # create legal pairs
     if method_list is None:
         method_list = sorted(list(method_set))
-    else:
         print("using old method list, assuming there are no new methods in new traces")
 
     method2ID = {e: k for (k, e) in enumerate(method_list)}
@@ -292,6 +290,33 @@ def read_clusters(estimator, X, X_id_mapping=None):
     return eleID2cluster, centroids, labels
 
 
+def read_cluster_contents(f):
+    if not f.endswith('.gz'):
+        raise Exception("currently only expecting gzip files")
+
+    node_coords = {}
+    cluster_nodes = defaultdict(list)
+    # assuming we can read entire data into memory
+    with gzip.open(f, 'r') as infile:
+        file_content = infile.read().decode('utf-8')
+        for row in file_content.split("\n"):
+            splitted = row.split('\t')
+
+            if len(splitted) <= 1:
+                # last line
+                print("Last. Should only see one of this, otherwise there is something unexpected in the file")
+                continue
+
+            cluster = splitted[0]
+            id = splitted[1]
+            assert "ID:" in id
+            id = id.lstrip("ID:")
+            coords = [float(value) for value in splitted[2:]]
+            node_coords[id] = coords
+            cluster_nodes[cluster].append(id)
+    return node_coords, cluster_nodes
+
+
 def write_cluster(element2cluster, X, f, X_id_mapping=None):
     if f.endswith('.gz'):
         writer = gzip.open(f, 'wb')
@@ -335,10 +360,8 @@ def write_cluster_contents_distance(element2cluster, X, centroids, f):
         writer = open(f, 'w')
     try:
         cluster_centroid = {}
-        print('centroids')
         for (cluster, coords) in centroids.items():
-            print(cluster)
-            print(coords)
+
             cluster_centroid[cluster] = coords
 
         for (id, cluster) in sorted(element2cluster.items(), key=lambda x: x[-1]):
@@ -390,6 +413,9 @@ def make_fsm(startings, endings, edges, id2cluster, generated_traces):
         previous_label = None
         previous_prob_id = None
         for (prob_id, word) in one_trace:
+            if prob_id not in id2cluster or id2cluster[prob_id] == -1:
+                print("Skipping due to missing prob_id in id-to-cluster mapping")
+                continue
             cluster_name = id2cluster[prob_id]
             if is_constructor(word):
                 cluster_name = 'CSTART'
@@ -584,7 +610,6 @@ def extending_ending_states(fsm, ending_methods):
 
 def drawing_dot(fsm, f):
     if len(fsm.states) < 25:
-        print("drawing dot!")
         fsm.to_dot(f, drawing_time=10)
 
 
@@ -613,6 +638,8 @@ def compute_statistics(X, method_list, args, estimator, generated_traces, valida
 
     # write distance to centroid of each element in each cluster
     write_cluster_contents_distance(elementID2cluster, X, centroids, output_folder + '/cluster_element_distances.txt')
+
+
 
     if create_fsm_per_unit_trace:
         create_fsm_for_unit_traces(elementID2cluster, generated_traces, output_folder + '/unit_fsms')
@@ -752,6 +779,7 @@ def parse_trace_file(f):
         traces = map(lambda tr: tr[1:] if tr[0] == lib.starting_char() else tr, lines)
         return set(traces)
 
+
 def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
     sys.setrecursionlimit(max_trace_depth())
 
@@ -803,8 +831,10 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
             pool.apply_async(run_cluster,a)
     pool.close()
     pool.join()
-    
+
+
 def run_cluster(X, alg, args, generated_traces, method_list, number_of_clusters, validation_traces):
+
     output_folder = args.output_folder + '/cls_' + alg + '/S_' + str(number_of_clusters)
     estimator = do_clustering(args, X, ncluster=number_of_clusters, clustering_algorithm=alg,
                                           eps=args.dbscan_eps)

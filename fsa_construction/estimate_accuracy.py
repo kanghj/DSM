@@ -86,7 +86,6 @@ def selecting_model(input_options):
 
     pool = multiprocessing.Pool(processes=input_options.args.max_cpu)
     paras=[]    
-
     for single_cluster_folder in cluster_folders:
         fsm_file = single_cluster_folder + '/fsm.txt'
         if not os.path.isfile(fsm_file):
@@ -120,7 +119,11 @@ def selecting_model(input_options):
         if not os.path.isfile(best_fsm_folder+'/'+name+'.txt'):
             continue
         shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.args.work_dir+'/FINAL_'+name+'.txt')
-        shutil.copyfile(best_fsm_folder + '/' + name + '.eps', input_options.args.work_dir + '/FINAL_' + name + '.eps')
+        try:
+            shutil.copyfile(best_fsm_folder + '/' + name + '.eps', input_options.args.work_dir + '/FINAL_' + name + '.eps')
+        except:
+            print("no eps file")
+            continue
         shutil.copyfile(best_fsm_folder+'/'+name,input_options.args.work_dir+'/FINAL_.dot')
 
 

@@ -107,7 +107,8 @@ class StandardAutomata:
         with open(f, 'w+') as  opened:
             opened.write(json_string)
 
-    def deserialize(self, f):
+    @staticmethod
+    def deserialize(f):
         import json
 
         with open(f) as infile:
@@ -119,7 +120,6 @@ class StandardAutomata:
 
         print(d[2])
         return StandardAutomata(d[1], edges, d[2])
-
 
     def clone(self):
         return StandardAutomata(self.startings,self.transitions,self.endings)
@@ -357,8 +357,6 @@ class StandardAutomata:
             finally:
                 if drawing_time is not None:
                     signal.alarm(0)
-        print("f.source")
-        print(f.source)
         return f.source
 
     # def to_string(self):
