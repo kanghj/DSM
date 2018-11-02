@@ -119,6 +119,8 @@ if __name__ == '__main__':
 
     input_sampler.select_traces(input_option.raw_input_trace_file,input_option.cluster_trace_file)
 
+    input("Finished trace sampling step. Sampled traces are in input_traces/cluster_traces.txt. Press Enter to continue...")
+
     ######## train RNNLM model ########
 
     if not os.path.isdir(input_option.args.save_dir) or (input_option.args.additional_trace is not None and input_option.args.init_from is not None):
@@ -133,13 +135,20 @@ if __name__ == '__main__':
 
     feature_extractor.feature_engineering(input_option)
 
+    input("Finished feature extraction step. Features of each node are in work_dir/features4clustering/. Press Enter to continue...")
+
     ######## clustering ########
 
     clustering_processing.clustering_step(input_option)
 
+    print('Finished clustering step. For smaller models. the feature vectors of nodes in each traces can be found in work_dir/clustering_space/X.txt.')
+    input(" Details of each cluster are in work_dir/clustering_space/<cluster type>/<number of clusters>. Press Enter to continue...")
+
     ######## model selection #######
 
     final_file=model_selection.selecting_model(input_option)
+
+    print("Finished model selection step.")
 
     print("Done! Final FSM is stored in",final_file)
 

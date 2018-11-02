@@ -109,7 +109,11 @@ def selecting_model(input_options):
         if not os.path.isfile(best_fsm_folder+'/'+name+'.txt'):
             continue
         shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.args.work_dir+'/FINAL_'+name+'.txt')
-        shutil.copyfile(best_fsm_folder+'/'+name+'.eps',input_options.args.work_dir+'/FINAL_'+name+'.eps')
+        try:
+            shutil.copyfile(best_fsm_folder+'/'+name+'.eps',input_options.args.work_dir+'/FINAL_'+name+'.eps')
+        except:
+            # sometimes there is no eps file. Need to investigate
+            pass
 
         extract_rejected_traces(best_fsm_folder+'/dfa_uncovered_traces.txt',input_options.args.work_dir+'/rejected_traces/input.txt')
         return input_options.args.work_dir+'/FINAL_'+name+'.txt'
