@@ -113,7 +113,10 @@ def read_args():
 
 
 if __name__ == '__main__':
+    os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
     input_option = read_args()
+    
+    print("Starting...")
 
     ######## preprocessing traces & trace sampling ###########
 
