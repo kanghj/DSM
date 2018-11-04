@@ -334,6 +334,8 @@ class StandardAutomata:
                 f.render(filename, view=False)
             except TimeoutError as e:
                 print("Drawing dot:", e)
+            except Exception as e :
+                print("exception", e)
             finally:
                 if drawing_time is not None:
                     signal.alarm(0)
@@ -371,7 +373,8 @@ class StandardAutomata:
             print(e)
             return False,None
         finally:
-            signal.alarm(0)
+            # signal.alarm(0)
+            pass
 
     def find_random_walk(self, source, cur_trace, local_label_coverage, max_length, max_label_coverage_per_trace,
                          adjlist, visited_states):

@@ -387,7 +387,7 @@ def count_accepted_traces(fsm, validation_traces, output_file=None, debug=False)
     fsm_adjlst = fsm.create_adjacent_list()
     rejected_traces = []
     for tr in validation_traces:
-        flag, rejected_prefices = fsm.is_accepting_one_trace(tr, fsm_adjlst, waiting_time=5)
+        flag, rejected_prefices = fsm.is_accepting_one_trace(tr, fsm_adjlst, waiting_time=None)#5)
         if flag:
             ans += 1
         else:
@@ -517,7 +517,7 @@ def extending_ending_states(fsm, ending_methods):
 
 def drawing_dot(fsm, f):
     if len(fsm.states) < 25:
-        fsm.to_dot(f, drawing_time=10)
+        fsm.to_dot(f, drawing_time=None)
 
 
 def compute_statistics(X, method_list, args, estimator, generated_traces, validation_traces, output_folder=None,
