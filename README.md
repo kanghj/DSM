@@ -26,7 +26,8 @@ python -m install graphviz
 
 ## Using DSM as a library
 
-- To use DSM as a library, run `python setup.py install` to install the DSM package on your machine.
+- To use DSM as a library, run `python setup.py install` to install the DSM package on your machine. 
+  Executing `import dsm` will work if the installation is successful.
 - The following 3 APIs are provided:
 
 ````
@@ -35,20 +36,20 @@ learn_model(input_path, rnn_model_dir, output_dir, args)
     Constructs a new FSA and writes it into output_dir/serialized_fsa.json.
     Writes intermediate outputs such as diagrams of the FSA in output_dir.
 
-    :param input_path: path to file containing input traces
-    :param rnn_model_dir: path to directory to store RNN model.
-    :param output_dir: path to directory to store final results and other intermediate output.
-    :param args:        args for training a neural network.
-                data_dir (str): directory containing training data, should be the same directory that input_path is in.
-                rnn_size (int): size of RNN hidden state. Defaults to 32.
-                num_layers (int): number of layers in the RNN. Defaults to 2.
-                model (str): rnn, gru, or lstm. Defaults to lstm.
-                batch_size (int): Minibatch size. Defaults to 10.
-                seq_length (int): RNN sequence length. Defaults to 25.
-                num_epochs (int): number of epochs. Defaults to 10.
-                grad_clip (float): clip gradients at this value. Defaults to 5.
-                learning_rate (float): Defaults to 0.002.
-                decay_rate (float): decay rate for rmsprop. Defaults to 0.97.
+    :param input_path:      path to file containing input traces
+    :param rnn_model_dir:   path to directory that will store the RNN model.
+    :param output_dir:      path to directory that will store the final results and other intermediate output.
+    :param args:            args for training a neural network. The following attributes can be configured.
+                data_dir (str):         directory containing training data, should be the same directory that input_path is in.
+                rnn_size (int):         size of RNN hidden state. Defaults to 32.
+                num_layers (int):       number of layers in the RNN. Defaults to 2.
+                model (str):            rnn, gru, or lstm. Defaults to lstm.
+                batch_size (int):       Minibatch size. Defaults to 10.
+                seq_length (int):       RNN sequence length. Defaults to 25.
+                num_epochs (int):       number of epochs. Defaults to 10.
+                grad_clip (float):      clip gradients at this value. Defaults to 5.
+                learning_rate (float):  Defaults to 0.002.
+                decay_rate (float):     decay rate for rmsprop. Defaults to 0.97.
 ````
 
 ````
@@ -56,15 +57,17 @@ accept_traces(traces, fsa_path)
 
     Given a list of execution traces, returns a list of booleans.
     For each trace in the list, True is returned if the trace is accepted by the FSA, otherwise False.
-    :param traces: a list of execution traces
-    :param fsa_path: path to FSA built using learn_model
-    :return: a list of booleans indicating whether each trace is accepted or rejected
+    
+    :param traces:      a list of execution traces. Each trace is a list of strings.
+    :param fsa_path:    path to FSA built using learn_model
+    :return:            a list of booleans indicating whether each trace is accepted or rejected
 ````
 
 ````
 update_model(input_path, rnn_model_dir, old_fsa_output_dir, output_dir)
 
     Updates an existing FSA with new traces.
+    
     :param input_path:          path to file containing new traces
     :param rnn_model_dir:       directory containing rnn model
     :param old_fsa_output_dir:  old output directory containing the previous fsa model and related outputs
