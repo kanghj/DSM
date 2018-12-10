@@ -113,12 +113,12 @@ class StandardAutomata:
 
         with open(f) as infile:
             d = json.load(infile)
-        print(d[0])
+        # print(d[0])
         edges = set()
         for edge in d[0]:
             edges.add(tuple(edge))
 
-        print(d[2])
+        # print(d[2])
         return StandardAutomata(d[1], edges, d[2])
 
     def clone(self):

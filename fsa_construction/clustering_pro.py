@@ -539,7 +539,7 @@ def clustering_pro(args):
     lib.init_dir(args.output_folder)
 
     # collect X
-    (X, generated_traces, additional_val_traces, method_list)= parse_sampled_traces(args.generated_traces_folder, 'd')
+    (X, generated_traces, additional_val_traces, method_list) = parse_sampled_traces(args.generated_traces_folder, 'd')
     print("Training data:", len(generated_traces))
 
     # read validation trace
@@ -799,7 +799,7 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
     # side-effect: save information about methods.
     # This is convenient for updating the FSA in future for new traces,
     # because new traces may not have used all the methods
-    with open('work_dir/method_list.txt', 'w+') as method_file:
+    with open(args.output_folder + '/method_list.txt', 'w+') as method_file:
         for method in method_list:
             method_file.write(method)
             method_file.write('\n')
@@ -817,7 +817,7 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
 
     write_X_to_file(X, method_list, generated_traces, args.output_folder + '/X.txt')
     # print generated_traces
-    pool = multiprocessing.Pool(processes=args.args.max_cpu)
+    pool = multiprocessing.Pool(processes=args.max_cpu)
 
     for number_of_clusters in range(args.min_cluster, args.max_cluster):
         for alg in clustering_algorithms:
@@ -825,7 +825,7 @@ def clustering_step(args,clustering_algorithms = ['kmeans', 'hierarchical']):
                 print("WARNING: number of clusters must be < number of instances!", number_of_clusters, len(X))
                 continue
 
-            print("Length of X:", len(X))
+            # print("Length of X:", len(X))
             # do clustering
             a=(X, alg, args, generated_traces, method_list, number_of_clusters, validation_traces)
             pool.apply_async(run_cluster,a)

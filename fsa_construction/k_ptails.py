@@ -78,10 +78,10 @@ def generate_probs(sess, model, words, vocab, tr, output_file):
             writer.write('WORD\t' + the_word + '\n')
 
 
-def sample(args,input_traces,output_feature_file):
-    with open(os.path.join(args.save_dir, 'config.pkl'), 'rb') as f:
+def sample(save_dir,input_traces,output_feature_file):
+    with open(os.path.join(save_dir, 'config.pkl'), 'rb') as f:
         saved_args = cPickle.load(f)
-    with open(os.path.join(args.save_dir, 'words_vocab.pkl'), 'rb') as f:
+    with open(os.path.join(save_dir, 'words_vocab.pkl'), 'rb') as f:
         words, vocab = cPickle.load(f)
     tf.reset_default_graph()
 
@@ -91,13 +91,13 @@ def sample(args,input_traces,output_feature_file):
     with tf.Session() as sess:
         tf.initialize_all_variables().run()
         saver = tf.train.Saver(tf.all_variables())
-        ckpt = tf.train.get_checkpoint_state(args.save_dir)
+        ckpt = tf.train.get_checkpoint_state(save_dir)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
             generate_probs(sess, model, words, vocab, input_traces, output_feature_file)
 
 def feature_engineering(input_option):
-    print("Feature engineering")
+    print("Performing feature engineering")
     if os.path.isdir(input_option.features4clustering_dir):
         import shutil
         shutil.rmtree(input_option.features4clustering_dir)
@@ -106,10 +106,11 @@ def feature_engineering(input_option):
         traces=[l.strip().split() for l in reader]
 
     index=0
-    pool = multiprocessing.Pool(processes=input_option.args.max_cpu)
+    pool = multiprocessing.Pool(processes=input_option.max_cpu)
     for tr in traces:
         index+=1
-        a=(input_option.args,tr,input_option.features4clustering_dir+'/d'+str(index)+'.txt')
+        a=(input_option.save_dir,tr,input_option.features4clustering_dir+'/d'+str(index)+'.txt')
         pool.apply_async(sample, a)
     pool.close()
     pool.join()
+

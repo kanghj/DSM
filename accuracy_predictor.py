@@ -1,13 +1,6 @@
-import os,sys
-import argparse,multiprocessing
-import train as RNNLM_training
-import fsa_construction.input_processing as input_sampler
-import fsa_construction.k_ptails as feature_extractor
-import fsa_construction.clustering_pro as clustering_processing
-import fsa_construction.estimate_accuracy as model_selection
-import fsa_construction.updater as model_updater
+import os
+import argparse
 import fsa_construction.Standard_Automata as graph_lib
-from fsa_construction.Standard_Automata import StandardAutomata
 import fsa_construction.clustering_pro as clustering_pro
 
 def read_args():
@@ -49,7 +42,7 @@ def predict(the_fsm,traces,verbose=False):
     predicted_recall = accepted_traces_count / len(traces)
     ######################
     if predicted_precision + predicted_recall != 0:
-        fmeasure =  2.0 * predicted_precision * predicted_recall / (predicted_precision + predicted_recall)
+        fmeasure = 2.0 * predicted_precision * predicted_recall / (predicted_precision + predicted_recall)
     else:
         fmeasure=0.0
 

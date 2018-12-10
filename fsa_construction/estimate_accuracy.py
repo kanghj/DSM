@@ -84,7 +84,7 @@ def selecting_model(input_options):
     cluster_folders = lib.find_folders_by_prefix(input_options.clustering_space_dir, 'S_')
     rankings=[]
 
-    pool = multiprocessing.Pool(processes=input_options.args.max_cpu)
+    pool = multiprocessing.Pool(processes=input_options.max_cpu)
     paras=[]    
     for single_cluster_folder in cluster_folders:
         fsm_file = single_cluster_folder + '/fsm.txt'
@@ -102,31 +102,31 @@ def selecting_model(input_options):
 
     rankings.sort(key=lambda x:(x[-1],x[1]),reverse=True)
     best_fsm_folder =os.path.dirname(rankings[0][0])
-    write_results(rankings,input_options.args.work_dir+'/model_selections.csv')
+    write_results(rankings,input_options.work_dir+'/model_selections.csv')
     import shutil
 
     shutil.copyfile(best_fsm_folder + '/cluster_element_distances.txt',
-                    input_options.args.work_dir + '/FINAL_cluster_element_distances.txt')
+                    input_options.work_dir + '/FINAL_cluster_element_distances.txt')
 
     shutil.copyfile(best_fsm_folder + '/serialized_fsa.json',
-                    input_options.args.work_dir + '/FINAL_serialized_fsa.json')
+                    input_options.work_dir + '/FINAL_serialized_fsa.json')
 
     shutil.copyfile(best_fsm_folder + '/centroids.txt',
-                    input_options.args.work_dir + '/FINAL_centroids.txt')
+                    input_options.work_dir + '/FINAL_centroids.txt')
     shutil.copyfile(best_fsm_folder + '/resultant_cluster.gz',
-                    input_options.args.work_dir + '/FINAL_resultant_cluster.gz')
+                    input_options.work_dir + '/FINAL_resultant_cluster.gz')
     for name in ['mindfa','dfa','fsm']:
         if not os.path.isfile(best_fsm_folder+'/'+name+'.txt'):
             continue
-        shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.args.work_dir+'/FINAL_'+name+'.txt')
+        shutil.copyfile(best_fsm_folder+'/'+name+'.txt',input_options.work_dir+'/FINAL_'+name+'.txt')
         try:
-            shutil.copyfile(best_fsm_folder + '/' + name + '.eps', input_options.args.work_dir + '/FINAL_' + name + '.eps')
+            shutil.copyfile(best_fsm_folder + '/' + name + '.eps', input_options.work_dir + '/FINAL_' + name + '.eps')
         except:
             print("no eps file")
             continue
-        shutil.copyfile(best_fsm_folder+'/'+name,input_options.args.work_dir+'/FINAL_.dot')
+        shutil.copyfile(best_fsm_folder+'/'+name,input_options.work_dir+'/FINAL_.dot')
 
 
-        extract_rejected_traces(best_fsm_folder+'/dfa_uncovered_traces.txt',input_options.args.work_dir+'/rejected_traces/input.txt')
-        return input_options.args.work_dir+'/FINAL_'+name+'.txt'
+        extract_rejected_traces(best_fsm_folder+'/dfa_uncovered_traces.txt',input_options.work_dir+'/rejected_traces/input.txt')
+        return input_options.work_dir+'/FINAL_'+name+'.txt'
         

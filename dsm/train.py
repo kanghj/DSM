@@ -17,28 +17,28 @@ def train(args):
     args.vocab_size = data_loader.vocab_size
 
     # check compatibility if training is continued from previously saved model
-    if args.init_from is not None:
-        # check if all necessary files exist
-        assert os.path.isdir(args.init_from)," %s must be a a path" % args.init_from
-        assert os.path.isfile(os.path.join(args.init_from,"config.pkl")),"config.pkl file does not exist in path %s"%args.init_from
-        assert os.path.isfile(os.path.join(args.init_from,"words_vocab.pkl")),"words_vocab.pkl.pkl file does not exist in path %s" % args.init_from
-        ckpt = tf.train.get_checkpoint_state(args.init_from)
-        assert ckpt,"No checkpoint found"
-        assert ckpt.model_checkpoint_path,"No model path found in checkpoint"
-
-        # open old config and check if models are compatible
-        with open(os.path.join(args.init_from, 'config.pkl'), 'rb') as f:
-            saved_model_args = cPickle.load(f)
-        need_be_same=["model","rnn_size","num_layers","seq_length"]
-        for checkme in need_be_same:
-            assert vars(saved_model_args)[checkme]==vars(args)[checkme],"Command line argument and saved model disagree on '%s' "%checkme
-
-        # open saved vocab/dict and check if vocabs/dicts are compatible
-        with open(os.path.join(args.init_from, 'words_vocab.pkl'), 'rb') as f:
-            saved_words, saved_vocab = cPickle.load(f)
-        assert saved_words==data_loader.words, "Data and loaded model disagreee on word set!"
-        assert saved_vocab==data_loader.vocab, "Data and loaded model disagreee on dictionary mappings!"
-    
+    # if args.init_from is not None:
+    #     # check if all necessary files exist
+    #     assert os.path.isdir(args.init_from)," %s must be a a path" % args.init_from
+    #     assert os.path.isfile(os.path.join(args.init_from,"config.pkl")),"config.pkl file does not exist in path %s"%args.init_from
+    #     assert os.path.isfile(os.path.join(args.init_from,"words_vocab.pkl")),"words_vocab.pkl.pkl file does not exist in path %s" % args.init_from
+    #     ckpt = tf.train.get_checkpoint_state(args.init_from)
+    #     assert ckpt,"No checkpoint found"
+    #     assert ckpt.model_checkpoint_path,"No model path found in checkpoint"
+    #
+    #     # open old config and check if models are compatible
+    #     with open(os.path.join(args.init_from, 'config.pkl'), 'rb') as f:
+    #         saved_model_args = cPickle.load(f)
+    #     need_be_same=["model","rnn_size","num_layers","seq_length"]
+    #     for checkme in need_be_same:
+    #         assert vars(saved_model_args)[checkme]==vars(args)[checkme],"Command line argument and saved model disagree on '%s' "%checkme
+    #
+    #     # open saved vocab/dict and check if vocabs/dicts are compatible
+    #     with open(os.path.join(args.init_from, 'words_vocab.pkl'), 'rb') as f:
+    #         saved_words, saved_vocab = cPickle.load(f)
+    #     assert saved_words==data_loader.words, "Data and loaded model disagreee on word set!"
+    #     assert saved_vocab==data_loader.vocab, "Data and loaded model disagreee on dictionary mappings!"
+    #
     with open(os.path.join(args.save_dir, 'config.pkl'), 'wb') as f:
         cPickle.dump(args, f)
     with open(os.path.join(args.save_dir, 'words_vocab.pkl'), 'wb') as f:
