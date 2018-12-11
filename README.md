@@ -31,7 +31,7 @@ python -m install graphviz
 - The following 3 APIs are provided:
 
 ````
-learn_model(input_path, rnn_model_dir, output_dir, args)
+learn_model(input_path: str, rnn_model_dir: str, output_dir: str, args)
     
     Constructs a new FSA and writes it into output_dir/serialized_fsa.json.
     Writes intermediate outputs such as diagrams of the FSA in output_dir.
@@ -53,18 +53,18 @@ learn_model(input_path, rnn_model_dir, output_dir, args)
 ````
 
 ````
-accept_traces(traces, fsa_path)
+accept_traces(traces: Iterable[Iterable[str]], fsa_directory: str)
 
     Given a list of execution traces, returns a list of booleans.
     For each trace in the list, True is returned if the trace is accepted by the FSA, otherwise False.
     
     :param traces:      a list of execution traces. Each trace is a list of strings.
-    :param fsa_path:    path to FSA built using learn_model
+    :param fsa_directory: path to directory containing FSA built using learn_model. This should be the same value as learn_model's output_dir
     :return:            a list of booleans indicating whether each trace is accepted or rejected
 ````
 
 ````
-update_model(input_path, rnn_model_dir, old_fsa_output_dir, output_dir)
+update_model(input_path: str, rnn_model_dir: str, old_fsa_output_dir: str, output_dir: str)
 
     Updates an existing FSA with new traces.
     

@@ -11,11 +11,13 @@ import fsa_construction.clustering_pro as clustering_processing
 import fsa_construction.Standard_Automata
 import fsa_construction.update_utils as update_utils
 
+from typing import Iterable
+
 # import fsa_construction.input_processing as input_processing
 
 
 class Option:
-    def __init__(self, data_dir, rnn_dir, work_dir):
+    def __init__(self, data_path, rnn_dir, work_dir):
         self.update_mode = False
 
         ####################################################################################
@@ -24,7 +26,7 @@ class Option:
             os.makedirs(work_dir)
 
         self.work_dir = work_dir
-        self.raw_input_trace_file = data_dir
+        self.raw_input_trace_file = data_path
         self.save_dir = rnn_dir
 
         #######
@@ -32,6 +34,7 @@ class Option:
             print("Cannot find input execution traces stored in", self.raw_input_trace_file)
             sys.exit(-1)
         # self.preprocessed_trace_file = self.args.data_dir+'/input.txt'
+        data_dir = '/'.join(data_path.split('/')[:-1])
         self.cluster_trace_file = data_dir + '/cluster_traces.txt'
         self.clustering_space_dir = work_dir + '/clustering_space'
         self.features4clustering_dir = work_dir + '/features4clustering'
@@ -69,7 +72,7 @@ def run_dsm(input_option, args):
     print("Done! Final FSM is stored in", final_file)
 
 
-def learn_model(input_path, rnn_model_dir, output_dir, args):
+def learn_model(input_path: str, rnn_model_dir: str, output_dir: str, args):
     """
     Constructs a new FSA and writes it into output_dir/serialized_fsa.json.
     Writes intermediate outputs such as diagrams of the FSA in output_dir.
@@ -93,15 +96,15 @@ def learn_model(input_path, rnn_model_dir, output_dir, args):
     run_dsm(Option(input_path, rnn_model_dir, output_dir), args)
 
 
-def accept_traces(traces, fsa_path):
+def accept_traces(traces: Iterable[Iterable[str]], fsa_directory: str):
     """
     Given a list of execution traces, returns a list of booleans.
     For each trace in the list, True is returned if the trace is accepted by the FSA, otherwise False.
     :param traces: a list of execution traces
-    :param fsa_path: path to FSA built using learn_model
+    :param fsa_directory: path to directory containing FSA built using learn_model. This should be the same value as learn_model's output_dir
     :return: a list of booleans indicating whether each trace is accepted or rejected
     """
-    automata = clustering_processing.StandardAutomata.deserialize(fsa_path)
+    automata = clustering_processing.StandardAutomata.deserialize(fsa_directory + '/FINAL_serialized_fsa.json')
     fsm_adjlst = automata.create_adjacent_list()
 
     ret_val = []
@@ -116,7 +119,8 @@ class OptionsSubset:
         # these field names are based on DSM.py's Option.
         self.features4clustering_dir = args.feature_dir
         self.cluster_trace_file = args.traces #+ '_selected'
-        self.args = args
+        self.save_dir = args.save_dir
+        self.max_cpu = 4
 
 
 class UpdateOptions:
@@ -207,7 +211,7 @@ def run_dsm_update(options):
     print("===done===")
 
 
-def update_model(input_path, rnn_model_dir, old_fsa_output_dir, output_dir):
+def update_model(input_path: str, rnn_model_dir: str, old_fsa_output_dir: str, output_dir: str):
     """
     Updates an existing FSA with new traces.
     :param input_path:          path to file containing new traces
