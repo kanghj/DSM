@@ -8,6 +8,8 @@
 ```
 conda install -c jjhelmus tensorflow=0.12.0
 ```
+(Note 3 July 2020: the above command doesn't work anymore. But running `pip install tensorflow==0.12.1` does.)
+
 - Install graphviz for Python:
 ```
 python -m install graphviz
